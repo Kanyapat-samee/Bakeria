@@ -58,10 +58,20 @@ function CheckoutPage() {
         shipping: {
           ...shipping,
           method: shipping.method as 'delivery' | 'pickup',
+        },
         total: grandTotal,
         status: 'Pending',
         createdAt: new Date().toISOString(),
       }
+    
+      await storeOrder(order)
+      toast.success(`Order placed! Thank you ${shipping.name}`)
+      clearCart()
+      router.push(`/receipt/${orderId}?userId=${order.userId}`)
+    } catch (err) {
+      console.error(err)
+      toast.error('Failed to place order.')
+    }
 
       await storeOrder(order)
       toast.success(`Order placed! Thank you ${shipping.name}`)
