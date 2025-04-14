@@ -63,7 +63,7 @@ function CheckoutPage() {
         status: 'Pending',
         createdAt: new Date().toISOString(),
       }
-    
+  
       await storeOrder(order)
       toast.success(`Order placed! Thank you ${shipping.name}`)
       clearCart()
@@ -72,6 +72,7 @@ function CheckoutPage() {
       console.error(err)
       toast.error('Failed to place order.')
     }
+  }
 
       await storeOrder(order)
       toast.success(`Order placed! Thank you ${shipping.name}`)
