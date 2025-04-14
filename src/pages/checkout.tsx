@@ -49,40 +49,40 @@ function CheckoutPage() {
       return
     }
 
-    try {
-      const orderId = crypto.randomUUID()
-      const order = {
-        orderId,
-        userId: user?.username || 'guest',
-        items: cart,
-        shipping: {
-          ...shipping,
-          method: shipping.method as 'delivery' | 'pickup',
-        },
-        total: grandTotal,
-        status: 'Pending',
-        createdAt: new Date().toISOString(),
+    const handleOrder = async () => {
+      const isDelivery = shipping.method === 'delivery'
+      const requiredFields = [shipping.name, shipping.phone]
+      const missing = requiredFields.some((f) => !f) || (isDelivery && !shipping.address)
+    
+      if (missing) {
+        toast.error('Please fill out all required shipping details')
+        return
       }
-  
-      await storeOrder(order)
-      toast.success(`Order placed! Thank you ${shipping.name}`)
-      clearCart()
-      router.push(`/receipt/${orderId}?userId=${order.userId}`)
-    } catch (err) {
-      console.error(err)
-      toast.error('Failed to place order.')
+    
+      try {
+        const orderId = crypto.randomUUID()
+        const order = {
+          orderId,
+          userId: user?.username || 'guest',
+          items: cart,
+          shipping: {
+            ...shipping,
+            method: shipping.method as 'delivery' | 'pickup',
+          },
+          total: grandTotal,
+          status: 'Pending',
+          createdAt: new Date().toISOString(),
+        }
+    
+        await storeOrder(order)
+        toast.success(`Order placed! Thank you ${shipping.name}`)
+        clearCart()
+        router.push(`/receipt/${orderId}?userId=${order.userId}`)
+      } catch (err) {
+        console.error(err)
+        toast.error('Failed to place order.')
+      }
     }
-  }
-
-      await storeOrder(order)
-      toast.success(`Order placed! Thank you ${shipping.name}`)
-      clearCart()
-      router.push(`/receipt/${orderId}?userId=${order.userId}`)
-    } catch (err) {
-      console.error(err)
-      toast.error('Failed to place order.')
-    }
-  }
 
   if (!isCartReady) return <p className="p-8">Loading cart...</p>
 
