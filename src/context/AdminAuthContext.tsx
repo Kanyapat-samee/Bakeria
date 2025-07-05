@@ -1,0 +1,136 @@
+'use client'
+
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  ReactNode,
+} from 'react'
+import {
+  signIn,
+  confirmSignIn,
+  signOut,
+  fetchAuthSession,
+} from 'aws-amplify/auth'
+import { Amplify } from 'aws-amplify'
+import { useRouter } from 'next/navigation' // ✅ Add this import
+import { amplifyAdminConfig } from '@/lib/amplifyAdminConfig'
+
+Amplify.configure(amplifyAdminConfig)
+
+type User = {
+  username: string
+  email: string
+  roles: string[]
+} | null
+
+type AdminAuthContextType = {
+  user: User
+  isLoading: boolean
+  isAdmin: boolean
+  isEmployee: boolean
+  signIn: (email: string, password: string, newPassword?: string) => Promise<void>
+  signOut: () => Promise<void>
+}
+
+const AdminAuthContext = createContext<AdminAuthContextType | undefined>(undefined)
+
+export function AdminAuthProvider({ children }: { children: ReactNode }) {
+  const [user, setUser] = useState<User>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const router = useRouter() // ✅ Use router for redirection
+
+  useEffect(() => {
+    const loadUser = async () => {
+      try {
+        const session = await fetchAuthSession({ forceRefresh: true })
+        const token = session.tokens?.idToken?.payload
+        const creds = session.credentials
+
+        if (!token || !creds) {
+          console.warn('[AdminAuth] No credentials or token')
+          setUser(null)
+          return
+        }
+
+        const email = token.email ?? ''
+        const name = token.name ?? ''
+        const username = name || email.split('@')[0] || 'User'
+        const rawGroups = token['cognito:groups']
+        const roles = Array.isArray(rawGroups)
+          ? rawGroups.map((r) => r.toLowerCase())
+          : []
+
+        setUser({ username, email, roles })
+        console.log('[AdminAuth] Loaded user:', { username, email, roles })
+      } catch (err) {
+        console.warn('[AdminAuth] No active session:', err)
+        setUser(null)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    loadUser()
+  }, [])
+
+  const handleSignIn = async (email: string, password: string, newPassword?: string) => {
+    try {
+      await signOut() // clear previous session
+    } catch {}
+
+    const result = await signIn({ username: email, password })
+
+    if (result.nextStep?.signInStep === 'CONFIRM_SIGN_IN_WITH_NEW_PASSWORD_REQUIRED') {
+      if (!newPassword) {
+        throw new Error('NEW_PASSWORD_REQUIRED')
+      }
+
+      await confirmSignIn({ challengeResponse: newPassword }, result)
+    }
+
+    const session = await fetchAuthSession({ forceRefresh: true })
+    const token = session.tokens?.idToken?.payload
+    const emailAttr = token?.email ?? ''
+    const name = token?.name ?? ''
+    const username = name || emailAttr.split('@')[0] || 'User'
+    const rawGroups = token?.['cognito:groups']
+    const roles = Array.isArray(rawGroups)
+      ? rawGroups.map((r) => r.toLowerCase())
+      : []
+
+    setUser({ username, email: emailAttr, roles })
+    console.log('[AdminAuth] Signed in:', { username, email: emailAttr, roles })
+  }
+
+  const handleSignOut = async () => {
+    await signOut()
+    setUser(null)
+    router.replace('/admin/login') // ✅ Redirect after logout
+  }
+
+  const isAdmin = user?.roles?.includes('admin') || false
+  const isEmployee = user?.roles?.includes('employee') || false
+
+  return (
+    <AdminAuthContext.Provider
+      value={{
+        user,
+        isLoading,
+        isAdmin,
+        isEmployee,
+        signIn: handleSignIn,
+        signOut: handleSignOut,
+      }}
+    >
+      {children}
+    </AdminAuthContext.Provider>
+  )
+}
+
+export function useAdminAuth() {
+  const context = useContext(AdminAuthContext)
+  if (!context) throw new Error('useAdminAuth must be used inside <AdminAuthProvider>')
+  return context
+}
