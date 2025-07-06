@@ -6,9 +6,9 @@ import {
 import { fetchAuthSession } from 'aws-amplify/auth'
 import { CartItem } from '@/context/CartContext'
 
-// Create a DynamoDB client only if credentials exist
+// 🔐 Create a DynamoDB client only if credentials exist
 async function getClient(): Promise<DynamoDBClient | null> {
-  const session = await fetchAuthSession()
+  const session = await fetchAuthSession({ forceRefresh: true })
 
   if (!session.credentials) {
     console.warn('🛑 No AWS credentials — skipping DynamoDB')
@@ -25,8 +25,8 @@ async function getClient(): Promise<DynamoDBClient | null> {
   })
 }
 
-// Save user's cart to DynamoDB
-export async function saveUserCart(userId: string, cart: CartItem[]) {
+// ✅ Save user's cart to DynamoDB
+export async function saveUserCart(userId: string, cart: CartItem[]): Promise<void> {
   const client = await getClient()
   if (!client) return
 
@@ -40,12 +40,13 @@ export async function saveUserCart(userId: string, cart: CartItem[]) {
         },
       })
     )
+    console.log(`🛒 Saved cart for user: ${userId}`)
   } catch (err) {
     console.error('❌ Error saving cart to DynamoDB:', err)
   }
 }
 
-// Load user's cart from DynamoDB
+// ✅ Load user's cart from DynamoDB
 export async function loadUserCart(userId: string): Promise<CartItem[]> {
   const client = await getClient()
   if (!client) return []
@@ -58,8 +59,21 @@ export async function loadUserCart(userId: string): Promise<CartItem[]> {
       })
     )
 
-    const raw = result.Item?.cart?.S
-    return raw ? JSON.parse(raw) : []
+    const raw = result.Item?.cart?.S as string | undefined
+    if (!raw) return []
+
+    try {
+      const parsed = JSON.parse(raw)
+      if (Array.isArray(parsed)) {
+        return parsed as CartItem[]
+      } else {
+        console.warn('⚠️ Loaded cart is not an array')
+        return []
+      }
+    } catch (err) {
+      console.error('❌ Failed to parse cart JSON:', err)
+      return []
+    }
   } catch (err) {
     console.error('❌ Error loading cart from DynamoDB:', err)
     return []

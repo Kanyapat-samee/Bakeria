@@ -84,10 +84,7 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
     const result = await signIn({ username: email, password })
 
     if (result.nextStep?.signInStep === 'CONFIRM_SIGN_IN_WITH_NEW_PASSWORD_REQUIRED') {
-      if (!newPassword) {
-        throw new Error('NEW_PASSWORD_REQUIRED')
-      }
-
+      if (!newPassword) throw new Error('NEW_PASSWORD_REQUIRED')
       await confirmSignIn({ challengeResponse: newPassword }, result)
     }
 
@@ -111,13 +108,21 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
     router.replace('/admin/login')
   }
 
-  const getAccessToken = async () => {
-    const session = await fetchAuthSession()
-    const token = session.tokens?.accessToken?.toString()
-    if (!token || token.trim().length === 0) {
-      throw new Error('No valid access token available')
+  const getAccessToken = async (): Promise<string> => {
+    try {
+      const session = await fetchAuthSession({ forceRefresh: true })
+      const token = session.tokens?.accessToken?.toString()
+
+      if (!token || typeof token !== 'string' || token.trim().length < 1) {
+        console.error('[getAccessToken] Invalid access token:', token)
+        throw new Error('No valid access token available')
+      }
+
+      return token
+    } catch (err) {
+      console.error('[getAccessToken] Failed to fetch access token:', err)
+      throw new Error('Failed to fetch access token')
     }
-    return token
   }
 
   const isAdmin = user?.roles?.includes('admin') || false

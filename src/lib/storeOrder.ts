@@ -24,18 +24,19 @@ type ShippingInfo = {
 }
 
 export type OrderPayload = {
-  orderId: string
+  orderId?: string
   userId: string
   items: OrderItem[]
   shipping: ShippingInfo
   total: number
   status: string
   createdAt?: string
+  time?: string
 }
 
 // 🔐 Authenticated DynamoDB client using Amplify session
 async function getClient() {
-  const session = await fetchAuthSession()
+  const session = await fetchAuthSession({ forceRefresh: true })
   if (!session.credentials) throw new Error('❌ Missing AWS credentials')
 
   return new DynamoDBClient({
@@ -48,8 +49,8 @@ async function getClient() {
   })
 }
 
-// ✅ Save order (partition: userId, sort: orderId)
-export async function storeOrder(order: OrderPayload) {
+// ✅ Save order
+export async function storeOrder(order: OrderPayload): Promise<string> {
   const client = await getClient()
   const now = new Date()
   const orderId = order.orderId || crypto.randomUUID()
@@ -74,8 +75,8 @@ export async function storeOrder(order: OrderPayload) {
   return orderId
 }
 
-// ✅ Retrieve specific order using composite key
-export async function getOrderById(orderId: string, userId: string) {
+// ✅ Retrieve specific order
+export async function getOrderById(orderId: string, userId: string): Promise<OrderPayload & { time: string }> {
   const client = await getClient()
 
   const command = new GetItemCommand({
@@ -87,22 +88,22 @@ export async function getOrderById(orderId: string, userId: string) {
   })
 
   const result = await client.send(command)
-  if (!result.Item) return null
+  if (!result.Item) return null as any
 
   return {
-    orderId: result.Item.orderId.S,
-    userId: result.Item.userId.S,
-    items: JSON.parse(result.Item.items.S!),
-    shipping: JSON.parse(result.Item.shipping.S!),
+    orderId: result.Item.orderId.S as string,
+    userId: result.Item.userId.S as string,
+    items: JSON.parse(result.Item.items.S as string),
+    shipping: JSON.parse(result.Item.shipping.S as string),
     total: Number(result.Item.total.N),
-    status: result.Item.status.S,
-    createdAt: result.Item.createdAt.S,
+    status: result.Item.status.S as string,
+    createdAt: result.Item.createdAt.S as string,
     time: result.Item.time?.S || '',
   }
 }
 
-// ✅ Get all orders by a single user (userId as partition key)
-export async function getOrdersByUserId(userId: string) {
+// ✅ Get all orders for a user
+export async function getOrdersByUserId(userId: string): Promise<OrderPayload[]> {
   const client = await getClient()
 
   const command = new QueryCommand({
@@ -116,19 +117,19 @@ export async function getOrdersByUserId(userId: string) {
   const result = await client.send(command)
 
   return (result.Items || []).map((item) => ({
-    orderId: item.orderId.S,
-    userId: item.userId.S,
-    items: JSON.parse(item.items.S!),
-    shipping: JSON.parse(item.shipping.S!),
+    orderId: item.orderId.S as string,
+    userId: item.userId.S as string,
+    items: JSON.parse(item.items.S as string),
+    shipping: JSON.parse(item.shipping.S as string),
     total: Number(item.total.N),
-    status: item.status.S,
-    createdAt: item.createdAt.S,
+    status: item.status.S as string,
+    createdAt: item.createdAt.S as string,
     time: item.time?.S || '',
   }))
 }
 
-// ✅ Admin: Get all orders (requires scan)
-export async function getAllOrders() {
+// ✅ Admin: Get all orders
+export async function getAllOrders(): Promise<OrderPayload[]> {
   const client = await getClient()
 
   const command = new ScanCommand({
@@ -138,13 +139,13 @@ export async function getAllOrders() {
   const result = await client.send(command)
 
   return (result.Items || []).map((item) => ({
-    orderId: item.orderId.S,
-    userId: item.userId.S,
-    items: JSON.parse(item.items.S!),
-    shipping: JSON.parse(item.shipping.S!),
+    orderId: item.orderId.S as string,
+    userId: item.userId.S as string,
+    items: JSON.parse(item.items.S as string),
+    shipping: JSON.parse(item.shipping.S as string),
     total: Number(item.total.N),
-    status: item.status.S,
-    createdAt: item.createdAt.S,
+    status: item.status.S as string,
+    createdAt: item.createdAt.S as string,
     time: item.time?.S || '',
   }))
 }
