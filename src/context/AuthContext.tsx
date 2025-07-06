@@ -28,6 +28,7 @@ type AuthContextType = {
   signUp: (email: string, password: string, name: string) => Promise<void>
   signIn: (email: string, password: string) => Promise<void>
   signOut: () => Promise<void>
+  getAccessToken: () => Promise<string>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -42,7 +43,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const session = await fetchAuthSession()
         const idToken = session.tokens?.idToken?.payload
 
-        // ✅ If not signed in, stop early
         if (!idToken?.email) {
           setUser(null)
           return
@@ -113,6 +113,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     clearGuestCart()
   }
 
+  const getAccessToken = async () => {
+    const session = await fetchAuthSession()
+    const token = session.tokens?.accessToken?.toString()
+    if (!token || token.trim().length === 0) {
+      throw new Error('No valid access token available')
+    }
+    return token
+  }
+
   const isAdmin = user?.roles?.includes('admin') || false
   const isEmployee = user?.roles?.includes('employee') || false
 
@@ -126,6 +135,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         signUp: handleSignUp,
         signIn: handleSignIn,
         signOut: handleSignOut,
+        getAccessToken,
       }}
     >
       {children}

@@ -14,7 +14,7 @@ import {
   fetchAuthSession,
 } from 'aws-amplify/auth'
 import { Amplify } from 'aws-amplify'
-import { useRouter } from 'next/navigation' // ✅ Add this import
+import { useRouter } from 'next/navigation'
 import { amplifyAdminConfig } from '@/lib/amplifyAdminConfig'
 
 Amplify.configure(amplifyAdminConfig)
@@ -32,6 +32,7 @@ type AdminAuthContextType = {
   isEmployee: boolean
   signIn: (email: string, password: string, newPassword?: string) => Promise<void>
   signOut: () => Promise<void>
+  getAccessToken: () => Promise<string>
 }
 
 const AdminAuthContext = createContext<AdminAuthContextType | undefined>(undefined)
@@ -39,7 +40,7 @@ const AdminAuthContext = createContext<AdminAuthContextType | undefined>(undefin
 export function AdminAuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User>(null)
   const [isLoading, setIsLoading] = useState(true)
-  const router = useRouter() // ✅ Use router for redirection
+  const router = useRouter()
 
   useEffect(() => {
     const loadUser = async () => {
@@ -77,7 +78,7 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
 
   const handleSignIn = async (email: string, password: string, newPassword?: string) => {
     try {
-      await signOut() // clear previous session
+      await signOut()
     } catch {}
 
     const result = await signIn({ username: email, password })
@@ -107,7 +108,16 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
   const handleSignOut = async () => {
     await signOut()
     setUser(null)
-    router.replace('/admin/login') // ✅ Redirect after logout
+    router.replace('/admin/login')
+  }
+
+  const getAccessToken = async () => {
+    const session = await fetchAuthSession()
+    const token = session.tokens?.accessToken?.toString()
+    if (!token || token.trim().length === 0) {
+      throw new Error('No valid access token available')
+    }
+    return token
   }
 
   const isAdmin = user?.roles?.includes('admin') || false
@@ -122,6 +132,7 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
         isEmployee,
         signIn: handleSignIn,
         signOut: handleSignOut,
+        getAccessToken,
       }}
     >
       {children}
