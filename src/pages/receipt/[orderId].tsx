@@ -24,15 +24,16 @@ type Order = {
 }
 
 export default function ReceiptPage() {
-  const { orderId } = useParams()
+  const params = useParams()
   const router = useRouter()
   const { user } = useAuth()
 
+  const orderId = typeof params?.orderId === 'string' ? params.orderId : ''
   const [order, setOrder] = useState<Order | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (typeof orderId !== 'string' || !user?.username?.trim()) return
+    if (!orderId || !user?.username?.trim()) return
 
     getOrderById(orderId, user.username.trim())
       .then((data) => {
@@ -47,7 +48,7 @@ export default function ReceiptPage() {
         router.push('/orders')
       })
       .finally(() => setLoading(false))
-  }, [orderId, user, router]) // ✅ fixed warning
+  }, [orderId, user, router])
 
   if (loading) return <p className="p-8">Loading receipt...</p>
   if (!order) return <p className="p-8 text-red-500">❌ Order not found.</p>
@@ -73,7 +74,7 @@ export default function ReceiptPage() {
 
         <h2 className="mt-6 text-lg font-semibold">Order Items</h2>
         <ul className="divide-y mt-2 text-sm">
-          {order.items.map((item: { id: string; name: string; quantity: number; price: number }) => (
+          {order.items.map((item) => (
             <li key={item.id} className="flex justify-between py-2">
               <span>{item.name} × {item.quantity}</span>
               <span>฿{(item.price * item.quantity).toFixed(2)}</span>
@@ -107,3 +108,6 @@ export default function ReceiptPage() {
     </main>
   )
 }
+
+// 🔧 Prevent static generation
+export const dynamic = 'force-dynamic'
