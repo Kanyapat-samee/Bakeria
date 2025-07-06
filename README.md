@@ -1,48 +1,124 @@
-# Bakeria
+# 🥐 Bakeria
 
-Bakeria is a full-stack e-commerce web application for a bakery, built with [Next.js](https://nextjs.org) and TypeScript. It features user authentication, a persistent shopping cart, and order management with AWS DynamoDB.
+**Bakeria** is a full-stack e-commerce web application for a modern bakery, built with **Next.js** and **TypeScript**. It features user authentication, a persistent shopping cart, and order management — all powered by **AWS DynamoDB** and **AWS Amplify**.
 
-## Features
+---
 
-- 🛒 **Shopping Cart**: Customers can add, remove, and update items in their shopping cart. Cart data is saved for each user in DynamoDB and persists across sessions.
-- 👤 **User Authentication**: Secure login, with roles for customers, admins, and employees.
-- 📦 **Order Management**: Customers can checkout and place orders. Orders are stored in DynamoDB. Admins and employees can view and update all orders.
-- 🔐 **AWS Integration**: Uses AWS Amplify for authentication and DynamoDB for storing carts and orders.
-- ⚡ **Modern Stack**: Built with Next.js, React, TypeScript, and AWS SDK.
+## Key Features
 
-## Getting Started
+- **Shopping Cart**  
+  Add, remove, and update items. Cart is saved per user in **DynamoDB**, persisting across sessions.
 
-First, install dependencies and run the development server:
+- **Authentication & Roles**  
+  Role-based access (`customer`, `admin`, `employee`) via **AWS Amplify Auth (Cognito)**.
+
+- **Order Management**  
+  Customers can place orders; admins and employees can view and update all orders stored in **DynamoDB**.
+
+- **Admin Dashboard**  
+  View real-time **order volume and revenue** by week, month, or year. Built with **Recharts** and supports **data aggregation** by time period.
+
+- **AWS Integration**  
+  - **Auth**: Amplify Auth (Cognito)  
+  - **Data**: DynamoDB for cart and orders  
+  - **Storage**: Amazon S3 for product images
+
+## 🛠️ Tech Stack
+
+- **Next.js** with Server-Side Rendering (SSR)
+- **TypeScript** for type safety and developer productivity
+- **React Context API** for global state management (auth, cart)
+- **AWS SDK v3** for interacting with cloud services
+- **AWS Amplify** for authentication and environment config
+- **Amazon DynamoDB** for cart and order persistence
+- **Amazon S3** for hosting product images
+- **Recharts** for visualizing order analytics on the admin dashboard
+
+---
+
+## 🚀 Getting Started
 
 ```bash
+# Install dependencies
 npm install
+
+# Run in development mode
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+
+# Visit the app
+http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## ☁️ AWS Setup
 
-You can start editing the app by modifying `pages/index.tsx`. The page auto-updates as you edit the file.
+To enable full functionality of **Bakeria**, you need to configure the following AWS services:
 
-API routes are available at [http://localhost:3000/api/*](http://localhost:3000/api/hello), and can be modified in `pages/api`.
+---
 
-## Project Structure
+### 1. AWS Cognito (via Amplify Auth)
 
-- `src/context/CartContext.tsx` — Handles cart state and persistence for each user.
-- `src/lib/userCart.ts` — Logic to save/load cart data in DynamoDB.
-- `src/lib/storeOrder.ts` — Logic to store user orders in DynamoDB.
-- `src/lib/adminStoreOrder.ts` — Admin endpoints to manage orders.
-- `src/context/AuthContext.tsx` and `src/context/AdminAuthContext.tsx` — Handle user and admin authentication via AWS Amplify.
+- **Used for authentication**
+- Create a **User Pool** and enable **email login**
+- Define user groups:
+  - `admin`
+  - `employee`
+  - `customer` (default)
 
-## AWS Setup
+#### 📌 Required Configuration
 
-- Requires AWS Amplify and DynamoDB tables (`BakeriaCarts`, `BakeriaOrders`).
-- Make sure to configure your AWS credentials and Amplify settings.
+```ts
+// amplifyAdminConfig.ts
+export const amplifyAdminConfig = {
+  Auth: {
+    Cognito: {
+      userPoolId: 'YOUR_USER_POOL_ID',
+      userPoolClientId: 'YOUR_CLIENT_ID',
+      identityPoolId: 'YOUR_IDENTITY_POOL_ID',
+      region: 'ap-southeast-1',
+    },
+  },
+}
+```
+
+### 2. DynamoDB Tables
+
+| Table Name      | Partition Key | Sort Key  | Used For              |
+| --------------- | ------------- | --------- | --------------------- |
+| `BakeriaCarts`  | `userId`      | *(none)*  | Persist user carts    |
+| `BakeriaOrders` | `userId`      | `orderId` | Store all user orders |
+| `Products`      | `id`          | *(none)*  | Product catalog data  |
+
+### 3. Amazon S3 (optional but recommended)
+
+- Use S3 to host product images
+
+- Bucket example: xxxx-xxxx-xxxx.s3.ap-southeast-1.amazonaws.com
+
+- Ensure objects are publicly accessible
+
+### 4. Environment Variables (Local or Amplify Console)
+
+Example
+
+```
+ACCESS_KEY_ID=your_aws_access_key
+SECRET_ACCESS_KEY=your_aws_secret_key
+```
+
+### 5. IAM Permission
+
+To enable this app to function correctly with AWS services, ensure the IAM user or role used for deployment and runtime has the following capabilities:
+
+- **Read and write access to DynamoDB**  
+  Required to store and retrieve user carts and order data from DynamoDB tables.
+
+- **Access to AWS Amplify**  
+  Necessary if you're deploying the app via AWS Amplify Console and using Amplify for backend environment configuration.
+
+- **(Optional) Access to S3 for static content**  
+  If your product images or assets are hosted on Amazon S3, grant read access to the corresponding S3 bucket.
+
+> Note: It’s recommended to follow the principle of least privilege and only grant the exact permissions needed.
 
 ## Learn More
 
@@ -50,6 +126,6 @@ API routes are available at [http://localhost:3000/api/*](http://localhost:3000/
 - [AWS Amplify Documentation](https://docs.amplify.aws/)
 - [DynamoDB Documentation](https://docs.aws.amazon.com/dynamodb/)
 
-## License
+## 📄 License
 
-This project is for learning and demonstration purposes.
+This project is intended for **learning and demonstration purposes only**.  
