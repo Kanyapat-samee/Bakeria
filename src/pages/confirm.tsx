@@ -28,8 +28,12 @@ export default function ConfirmPage() {
       await confirmSignUp({ username: email, confirmationCode: code })
       toast.success('✅ Email confirmed! You can now log in.')
       router.push('/login')
-    } catch (err: any) {
-      toast.error(err.message || 'Confirmation failed')
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        toast.error(err.message)
+      } else {
+        toast.error('Confirmation failed')
+      }
     } finally {
       setLoading(false)
     }
@@ -44,8 +48,12 @@ export default function ConfirmPage() {
     try {
       await resendSignUpCode({ username: email })
       toast.success('📨 Confirmation code sent again')
-    } catch (err: any) {
-      toast.error(err.message || 'Resend failed')
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        toast.error(err.message)
+      } else {
+        toast.error('Resend failed')
+      }
     }
   }
 

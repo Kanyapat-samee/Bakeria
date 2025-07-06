@@ -49,8 +49,12 @@ export default function LoginPage() {
         toast.success('Logged in!')
         router.push('/')
       }
-    } catch (err: any) {
-      toast.error(err.message || 'Authentication failed')
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        toast.error(err.message || 'Authentication failed')
+      } else {
+        toast.error('Authentication failed')
+      }
     } finally {
       setLoading(false)
     }

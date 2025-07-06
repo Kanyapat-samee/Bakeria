@@ -8,6 +8,31 @@ import {
 import { fetchAuthSession } from 'aws-amplify/auth'
 import { format } from 'date-fns'
 
+// ✅ Define proper types
+type OrderItem = {
+  id: string
+  name: string
+  price: number
+  quantity: number
+}
+
+type ShippingInfo = {
+  name: string
+  phone: string
+  address?: string
+  method: 'delivery' | 'pickup'
+}
+
+export type OrderPayload = {
+  orderId: string
+  userId: string
+  items: OrderItem[]
+  shipping: ShippingInfo
+  total: number
+  status: string
+  createdAt?: string
+}
+
 // 🔐 Authenticated DynamoDB client using Amplify session
 async function getClient() {
   const session = await fetchAuthSession()
@@ -24,7 +49,7 @@ async function getClient() {
 }
 
 // ✅ Save order (partition: userId, sort: orderId)
-export async function storeOrder(order: any) {
+export async function storeOrder(order: OrderPayload) {
   const client = await getClient()
   const now = new Date()
   const orderId = order.orderId || crypto.randomUUID()

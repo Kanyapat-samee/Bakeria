@@ -6,9 +6,34 @@ import { getOrdersByUserId } from '@/lib/storeOrder'
 import { format } from 'date-fns'
 import Link from 'next/link'
 
+type OrderItem = {
+  id: string
+  name: string
+  price: number
+  quantity: number
+}
+
+type ShippingInfo = {
+  name: string
+  phone: string
+  address?: string
+  method: 'delivery' | 'pickup'
+}
+
+type Order = {
+  orderId: string
+  userId: string
+  items: OrderItem[]
+  shipping: ShippingInfo
+  total: number
+  status: string
+  createdAt: string
+  time?: string
+}
+
 export default function OrdersPage() {
   const { user } = useAuth()
-  const [orders, setOrders] = useState<any[]>([])
+  const [orders, setOrders] = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -17,7 +42,7 @@ export default function OrdersPage() {
     const fetchOrders = async () => {
       try {
         const userOrders = await getOrdersByUserId(user.username.trim())
-        setOrders(userOrders)
+        setOrders(userOrders as Order[])
       } catch (err) {
         console.error('❌ Failed to load orders:', err)
       } finally {
@@ -64,7 +89,7 @@ export default function OrdersPage() {
               </div>
 
               <ul className="list-disc text-sm text-gray-700 ml-5 mb-3">
-                {order.items.map((item: any) => (
+                {order.items.map((item) => (
                   <li key={item.id}>
                     {item.name} × {item.quantity} = ฿{(item.price * item.quantity).toFixed(2)}
                   </li>
