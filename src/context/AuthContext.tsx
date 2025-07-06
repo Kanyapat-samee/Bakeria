@@ -43,18 +43,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const session = await fetchAuthSession({ forceRefresh: true })
         const idToken = session.tokens?.idToken?.payload
 
-        if (!idToken?.email) {
+        const rawEmail = idToken?.email
+        if (!rawEmail) {
           setUser(null)
           return
         }
 
-        const email = idToken.email
-        const name = idToken.name ?? ''
-        const username = name || email.split('@')[0] || 'User'
+        const email = String(rawEmail)
+        const rawName = idToken?.name
+        const name = typeof rawName === 'string' ? rawName : String(rawName ?? '')
+        const username = name || (email.includes('@') ? email.split('@')[0] : '') || 'User'
 
-        const rawGroups = idToken['cognito:groups'] ?? []
+        const rawGroups = idToken?.['cognito:groups'] ?? []
         const roles: string[] = Array.isArray(rawGroups)
-          ? rawGroups.map((g) => g.toLowerCase())
+          ? rawGroups.map((g) =>
+              typeof g === 'string' ? g.toLowerCase() : String(g).toLowerCase()
+            )
           : typeof rawGroups === 'string'
           ? [rawGroups.toLowerCase()]
           : []
@@ -87,17 +91,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const session = await fetchAuthSession({ forceRefresh: true })
     const idToken = session.tokens?.idToken?.payload
 
-    if (!idToken?.email) {
+    const rawEmail = idToken?.email
+    if (!rawEmail) {
       setUser(null)
       return
     }
 
-    const emailAttr = idToken.email
-    const name = idToken.name ?? ''
-    const username = name || emailAttr.split('@')[0] || 'User'
-    const rawGroups = idToken['cognito:groups'] ?? []
-    const roles = Array.isArray(rawGroups)
-      ? rawGroups.map((r) => r.toLowerCase())
+    const emailAttr = String(rawEmail)
+    const rawName = idToken?.name
+    const name = typeof rawName === 'string' ? rawName : String(rawName ?? '')
+    const username = name || (emailAttr.includes('@') ? emailAttr.split('@')[0] : '') || 'User'
+
+    const rawGroups = idToken?.['cognito:groups'] ?? []
+    const roles: string[] = Array.isArray(rawGroups)
+      ? rawGroups.map((g) =>
+          typeof g === 'string' ? g.toLowerCase() : String(g).toLowerCase()
+        )
       : typeof rawGroups === 'string'
       ? [rawGroups.toLowerCase()]
       : []

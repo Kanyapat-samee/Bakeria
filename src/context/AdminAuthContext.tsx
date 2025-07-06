@@ -55,12 +55,18 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
           return
         }
 
-        const email = token.email ?? ''
-        const name = token.name ?? ''
+        const emailRaw = token.email
+        const nameRaw = token.name
+
+        const email = typeof emailRaw === 'string' ? emailRaw : String(emailRaw ?? '')
+        const name = typeof nameRaw === 'string' ? nameRaw : ''
+
         const username = name || email.split('@')[0] || 'User'
         const rawGroups = token['cognito:groups']
         const roles = Array.isArray(rawGroups)
-          ? rawGroups.map((r) => r.toLowerCase())
+          ? rawGroups
+              .filter((r): r is string => typeof r === 'string') // ✅ กรองเฉพาะ string
+              .map((r) => r.toLowerCase())
           : []
 
         setUser({ username, email, roles })
@@ -85,19 +91,25 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
 
     if (result.nextStep?.signInStep === 'CONFIRM_SIGN_IN_WITH_NEW_PASSWORD_REQUIRED') {
       if (!newPassword) throw new Error('NEW_PASSWORD_REQUIRED')
-      await confirmSignIn({ challengeResponse: newPassword }, result)
+      await confirmSignIn({ challengeResponse: newPassword })
     }
 
     const session = await fetchAuthSession({ forceRefresh: true })
     const token = session.tokens?.idToken?.payload
-    const emailAttr = token?.email ?? ''
-    const name = token?.name ?? ''
+
+    const emailRaw = token?.email
+    const nameRaw = token?.name
+
+    const emailAttr = typeof emailRaw === 'string' ? emailRaw : String(emailRaw ?? '')
+    const name = typeof nameRaw === 'string' ? nameRaw : ''
     const username = name || emailAttr.split('@')[0] || 'User'
+
     const rawGroups = token?.['cognito:groups']
     const roles = Array.isArray(rawGroups)
-      ? rawGroups.map((r) => r.toLowerCase())
+      ? rawGroups
+          .filter((r): r is string => typeof r === 'string') // ✅ กรองเฉพาะ string
+          .map((r) => r.toLowerCase())
       : []
-
     setUser({ username, email: emailAttr, roles })
     console.log('[AdminAuth] Signed in:', { username, email: emailAttr, roles })
   }
