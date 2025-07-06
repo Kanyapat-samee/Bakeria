@@ -55,7 +55,10 @@ function CheckoutPage() {
         orderId,
         userId: user?.username || 'guest',
         items: cart,
-        shipping,
+        shipping: {
+          ...shipping,
+          method: shipping.method as 'delivery' | 'pickup', // ✅ fix type here
+        },
         total: grandTotal,
         status: 'Pending',
         createdAt: new Date().toISOString(),
