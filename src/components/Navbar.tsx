@@ -24,8 +24,6 @@ export default function Navbar() {
     setUserMenuOpen(false)
   }
 
-  const displayName = user?.username || user?.email?.split('@')[0] || 'User'
-
   // Close dropdown on outside click
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -39,9 +37,9 @@ export default function Navbar() {
 
   return (
     <>
-      <nav className="sticky top-0 z-50 bg-white border-b border-gray-200">
+      <nav className="sticky top-0 z-50 bg-[#fef8ed] border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-6 py-3 flex justify-between items-center text-sm font-medium tracking-wide">
-          {/* Brand + Links */}
+          {/* Brand */}
           <div className="flex gap-6 items-center">
             <Link href="/" className="text-xl font-serif font-bold text-[#9c191dfd]">
               Bakeria
@@ -56,7 +54,7 @@ export default function Navbar() {
 
           {/* Right Side: Cart + User */}
           <div className="flex gap-4 items-center relative">
-            {/* 🛒 Cart */}
+            {/* Cart */}
             <button
               onClick={() => setDrawerOpen(true)}
               className="relative px-4 py-1.5 border border-[#9c191dfd] text-[#9c191dfd] rounded-full hover:bg-[#9c191dfd] hover:text-white transition-colors"
@@ -69,11 +67,10 @@ export default function Navbar() {
               )}
             </button>
 
-            {/* 👤 User Section */}
+            {/* User Section */}
             {user ? (
               <div className="relative flex items-center gap-2" ref={dropdownRef}>
                 <UserCircleIcon className="w-6 h-6 text-[#9c191dfd]" />
-                <span className="text-gray-700">{displayName}</span>
                 <button onClick={() => setUserMenuOpen((prev) => !prev)}>
                   <ChevronDownIcon className="w-4 h-4 text-gray-600" />
                 </button>
@@ -113,3 +110,4 @@ export default function Navbar() {
     </>
   )
 }
+
