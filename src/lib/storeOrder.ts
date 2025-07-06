@@ -8,7 +8,6 @@ import {
 import { fetchAuthSession } from 'aws-amplify/auth'
 import { format } from 'date-fns'
 
-// ✅ Define proper types
 type OrderItem = {
   id: string
   name: string
@@ -34,7 +33,6 @@ export type OrderPayload = {
   time?: string
 }
 
-// 🔐 Authenticated DynamoDB client using Amplify session
 async function getClient() {
   const session = await fetchAuthSession({ forceRefresh: true })
   if (!session.credentials) throw new Error('❌ Missing AWS credentials')
@@ -49,7 +47,6 @@ async function getClient() {
   })
 }
 
-// ✅ Save order
 export async function storeOrder(order: OrderPayload): Promise<string> {
   const client = await getClient()
   const now = new Date()
@@ -75,8 +72,7 @@ export async function storeOrder(order: OrderPayload): Promise<string> {
   return orderId
 }
 
-// ✅ Retrieve specific order
-export async function getOrderById(orderId: string, userId: string): Promise<OrderPayload & { time: string }> {
+export async function getOrderById(orderId: string, userId: string): Promise<(OrderPayload & { time: string }) | null> {
   const client = await getClient()
 
   const command = new GetItemCommand({
@@ -88,7 +84,7 @@ export async function getOrderById(orderId: string, userId: string): Promise<Ord
   })
 
   const result = await client.send(command)
-  if (!result.Item) return null as any
+  if (!result.Item) return null
 
   return {
     orderId: result.Item.orderId.S as string,
@@ -102,7 +98,6 @@ export async function getOrderById(orderId: string, userId: string): Promise<Ord
   }
 }
 
-// ✅ Get all orders for a user
 export async function getOrdersByUserId(userId: string): Promise<OrderPayload[]> {
   const client = await getClient()
 
@@ -128,7 +123,6 @@ export async function getOrdersByUserId(userId: string): Promise<OrderPayload[]>
   }))
 }
 
-// ✅ Admin: Get all orders
 export async function getAllOrders(): Promise<OrderPayload[]> {
   const client = await getClient()
 
