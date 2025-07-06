@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useAdminAuth } from '@/context/AdminAuthContext'
 import { useRouter } from 'next/router'
 
@@ -21,19 +22,19 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             Admin Panel
           </h2>
           <nav className="space-y-3">
-            <a
+            <Link
               href="/admin/orders"
               className="block text-sm px-4 py-2 rounded-full bg-transparent text-[#5c1c1d] hover:bg-[#f3dcd9] hover:text-[#9c191d] transition"
             >
               📦 Orders
-            </a>
+            </Link>
             {user?.roles?.includes('admin') && (
-              <a
+              <Link
                 href="/admin/dashboard"
                 className="block text-sm px-4 py-2 rounded-full bg-transparent text-[#5c1c1d] hover:bg-[#f3dcd9] hover:text-[#9c191d] transition"
               >
                 📊 Dashboard
-              </a>
+              </Link>
             )}
           </nav>
         </div>

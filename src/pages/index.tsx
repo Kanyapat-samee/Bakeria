@@ -28,7 +28,13 @@ export default function LandingPage() {
           console.warn('⚠️ Unexpected product data format:', data)
         }
       })
-      .catch(err => console.error('❌ Failed to fetch products:', err))
+      .catch((err: unknown) => {
+        if (err instanceof Error) {
+          console.error('❌ Failed to fetch products:', err.message)
+        } else {
+          console.error('❌ Failed to fetch products:', err)
+        }
+      })
   }, [])
 
   return (
@@ -40,6 +46,7 @@ export default function LandingPage() {
           Handcrafted croissants baked daily with French butter and passion.
           Available for pick-up or delivered to your door — warm, golden, and irresistible.
         </p>
+
         {/* Image Grid */}
         <div className="mt-12 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 max-w-6xl mx-auto">
           {[
@@ -47,29 +54,34 @@ export default function LandingPage() {
             'https://bakeria-content-picture.s3.ap-southeast-1.amazonaws.com/5.png',
             'https://bakeria-content-picture.s3.ap-southeast-1.amazonaws.com/4.png',
           ].map((src, i) => (
-            <div key={i} className="aspect-square overflow-hidden">
-              <img src={src} alt={`img${i}`} className="w-full h-full object-cover" />
+            <div key={i} className="aspect-square overflow-hidden relative rounded-lg">
+              <Image
+                src={src}
+                alt={`img${i}`}
+                fill
+                className="object-cover"
+              />
             </div>
           ))}
-          </div>
-        </section>
+        </div>
+      </section>
 
       {/* Mid Hero */}
       <section className="bg-[#9c191d] text-[#fef8ed] py-20 px-4 text-center">
-          <div className="max-w-2xl mx-auto">
-            <h2 className="text-3xl font-serif font-bold mb-4">
-              Crafted like in <span className="text-[#fef8ed]">Paris</span>. Served like at home.
-            </h2>
-            <p className="text-base leading-relaxed mb-4">
-              Every croissant is hand-rolled with imported French butter, folded at dawn, and baked fresh daily.
-              We don’t just deliver pastries — we deliver the feeling of Paris.
-            </p>
-            <p className="italic text-sm opacity-70">
-              “Le croissant, c’est plus qu’un pain. C’est un moment.”
-            </p>
-            <div className="h-[1px] bg-[#fef8ed]/20 w-24 mx-auto mt-10" />
-          </div>
-        </section>
+        <div className="max-w-2xl mx-auto">
+          <h2 className="text-3xl font-serif font-bold mb-4">
+            Crafted like in <span className="text-[#fef8ed]">Paris</span>. Served like at home.
+          </h2>
+          <p className="text-base leading-relaxed mb-4">
+            Every croissant is hand-rolled with imported French butter, folded at dawn, and baked fresh daily.
+            We don’t just deliver pastries — we deliver the feeling of Paris.
+          </p>
+          <p className="italic text-sm opacity-70">
+            “Le croissant, c’est plus qu’un pain. C’est un moment.”
+          </p>
+          <div className="h-[1px] bg-[#fef8ed]/20 w-24 mx-auto mt-10" />
+        </div>
+      </section>
 
       {/* Product Grid */}
       <section className="px-4 sm:px-8 py-10">
@@ -111,29 +123,36 @@ export default function LandingPage() {
               </div>
 
               {/* Name and Price */}
-              <h3 className="font-semibold text-sm text-[#fffaf5] mt-1 mb-0 leading-tight">{product.name}</h3>
-              <p className="text-sm text-[#fffaf5] mt-0.5 mb-1 leading-tight">฿{product.price.toFixed(2)}</p>
+              <h3 className="font-semibold text-sm text-[#fffaf5] mt-1 mb-0 leading-tight">
+                {product.name}
+              </h3>
+              <p className="text-sm text-[#fffaf5] mt-0.5 mb-1 leading-tight">
+                ฿{product.price.toFixed(2)}
+              </p>
             </div>
           ))}
         </div>
       </section>
-      
+
+      {/* Footer */}
       <footer className="bg-[#fef8ed] text-[#9c191d] text-sm px-6 py-8">
         <div className="max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-3 gap-6">
           {/* Branding */}
           <div>
             <h3 className="font-bold text-lg mb-2">Bakeria</h3>
-            <p className="leading-snug">Handcrafted croissants, baked fresh daily and delivered warm to your door.</p>
+            <p className="leading-snug">
+              Handcrafted croissants, baked fresh daily and delivered warm to your door.
+            </p>
           </div>
 
           {/* Navigation */}
           <div>
             <h4 className="font-semibold mb-2">Quick Links</h4>
             <ul className="space-y-1">
-              <li><a href="/products" className="hover:underline">Products</a></li>
-              <li><a href="/orders" className="hover:underline">Track Order</a></li>
-              <li><a href="/contact" className="hover:underline">Contact</a></li>
-              <li><a href="/faq" className="hover:underline">FAQs</a></li>
+              <li><Link href="/products" className="hover:underline">Products</Link></li>
+              <li><Link href="/orders" className="hover:underline">Track Order</Link></li>
+              <li><Link href="/contact" className="hover:underline">Contact</Link></li>
+              <li><Link href="/faq" className="hover:underline">FAQs</Link></li>
             </ul>
           </div>
 
@@ -150,7 +169,6 @@ export default function LandingPage() {
           © 2025 This is only a Bakeria Demo. All rights reserved.
         </div>
       </footer>
-
     </main>
   )
 }

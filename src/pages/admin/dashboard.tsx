@@ -7,7 +7,6 @@ import { useAdminAuth } from '@/context/AdminAuthContext'
 import { getAllOrders } from '@/lib/adminStoreOrder'
 import {
   format,
-  parseISO,
   startOfWeek,
   startOfMonth,
   startOfYear,
@@ -38,10 +37,12 @@ export default function AdminDashboard() {
   useEffect(() => {
     if (isAdmin) {
       getAllOrders()
-        .then(all => setOrders(all.map(o => ({
-          createdAt: o.createdAt,
-          total: o.total
-        }))))
+        .then((all: Order[]) =>
+          setOrders(all.map(o => ({
+            createdAt: o.createdAt,
+            total: o.total
+          })))
+        )
         .catch(err => console.error(err))
     }
   }, [isAdmin])

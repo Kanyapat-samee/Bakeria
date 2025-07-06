@@ -35,12 +35,18 @@ export default function AdminLoginPage() {
         setPassword('')
         setNewPassword('')
       }
-    } catch (err: any) {
-      if (err.message === 'NEW_PASSWORD_REQUIRED') {
-        setRequireNewPassword(true)
-        toast('New password required. Please set a new one.')
+    } catch (err: unknown) {
+      if (typeof err === 'object' && err !== null && 'message' in err) {
+        const errorMsg = (err as { message?: string }).message
+        if (errorMsg === 'NEW_PASSWORD_REQUIRED') {
+          setRequireNewPassword(true)
+          toast('New password required. Please set a new one.')
+        } else {
+          toast.error('Login failed. Check your credentials.')
+          console.error(err)
+        }
       } else {
-        toast.error('Login failed. Check your credentials.')
+        toast.error('An unknown error occurred.')
         console.error(err)
       }
     } finally {

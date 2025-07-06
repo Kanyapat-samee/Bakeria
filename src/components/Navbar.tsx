@@ -108,7 +108,7 @@ export default function Navbar() {
         </div>
       </nav>
 
-      {/* 🧺 Slide-out Cart Drawer */}
+      {/* Slide-out Cart Drawer */}
       <CartDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} />
     </>
   )

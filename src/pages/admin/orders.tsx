@@ -51,7 +51,7 @@ export default function AdminOrdersPage() {
       try {
         const all = await getAllOrders()
         setOrders(all)
-      } catch (err) {
+      } catch (err: unknown) {
         console.error('Failed to load orders:', err)
       }
     }
@@ -85,7 +85,7 @@ export default function AdminOrdersPage() {
           </tr>
         </thead>
         <tbody>
-          {orders.map((order, idx) => (
+          {orders.map((order) => (
             <tr key={order.orderId} className="border-t hover:bg-[#fff4f2] transition">
               <td className="p-3 font-mono">{order.orderId.slice(0, 8)}...</td>
               <td className="p-3">{order.shipping.name}</td>
