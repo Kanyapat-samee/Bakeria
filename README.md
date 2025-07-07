@@ -2,6 +2,7 @@
 
 **Bakeria** is a full-stack e-commerce web application for a modern bakery, built with **Next.js** and **TypeScript**. It features user authentication, a persistent shopping cart, and order management — all powered by **AWS DynamoDB** and **AWS Amplify**.
 
+**🔗Live Demo**: [https://main.d3149rt8ngwjhp.amplifyapp.com]
 ---
 
 ## Key Features
